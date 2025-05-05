@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react"; // Import React
+import  { useRef, useState } from "react"; 
 import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
