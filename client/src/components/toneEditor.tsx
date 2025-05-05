@@ -12,7 +12,7 @@ export default function ToneEditor() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tone, setTone] = useState(50);
-  const apiUrl = "http://localhost:3001";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
   const applyTone = async (newTone: number) => {
     const currentText = textareaRef.current?.value || "";
