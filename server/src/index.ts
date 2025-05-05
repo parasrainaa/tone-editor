@@ -1,40 +1,21 @@
-import { serve } from "bun";
 import { GoogleGenAI } from "@google/genai";
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const port = parseInt(process.env.PORT || "3000");
 
 const cache = new Map<string, string>();
 
-const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-
-serve({
-  port,
-  fetch: async (req) => {
-    const url = new URL(req.url);
+export default {
+  async fetch(req: Request, env: { GEMINI_API_KEY: string }) {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     };
-    if (req.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders,
-      });
-    }
-    if (req.method !== "POST") {
-      return new Response(null, {
-        status: 405,
-        headers: { "Access-Control-Allow-Origin": "*" },
-      });
-    }
-    if (url.pathname !== "/api/enhance") {
-      return new Response(null, {
-        status: 404,
-        headers: { "Access-Control-Allow-Origin": "*" },
-      });
-    }
+    if (req.method === "OPTIONS")
+      return new Response(null, { status: 204, headers: corsHeaders });
+    if (req.method !== "POST")
+      return new Response(null, { status: 405, headers: corsHeaders });
+    const url = new URL(req.url);
+    if (url.pathname !== "/api/enhance")
+      return new Response(null, { status: 404, headers: corsHeaders });
     const { text, tone }: { text: string; tone: number } = await req.json();
     const key = `${text}|${tone}`;
     if (cache.has(key)) {
@@ -58,6 +39,7 @@ Desired tone level: ${tone}
 Please rewrite the text to match the specified tone level while preserving the original meaning.Only send the toned text`;
 
     try {
+      const genAI = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
       const response = await genAI.models.generateContent({
         model: "gemini-2.0-flash",
         contents: { text: prompt },
@@ -80,6 +62,4 @@ Please rewrite the text to match the specified tone level while preserving the o
       });
     }
   },
-});
-
-console.log(`Server running on port ${port}`);
+};
